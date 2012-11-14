@@ -1,0 +1,9 @@
+body, html {
+    margin: 0px;
+}
+
+#c {
+    width: 300px;
+    height: 300px;
+    border: 1px solid #000;
+}
