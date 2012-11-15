@@ -3,7 +3,7 @@
 <head>
     <title>Demo 2</title>
     <script src="scripts/webgl_utils.js" type="text/javascript"></script>
-    <script src="scripts/demo02-02.js" type="text/javascript"></script>
+    <script src="scripts/demo02-03.js" type="text/javascript"></script>
     <script id="vshader" type="x-shader/x-vertex">
         attribute vec3 aPosition;
         attribute vec4 aColor;
@@ -11,8 +11,8 @@
         varying vec4 vColor;
         
         void main() {
-            gl_Position = vec4(aPosition, 1.0);
-            vColor = aColor;
+            gl_Position = vec4(aPosition.x - 0.5, aPosition.yz, 1.0);
+            vColor = vec4( aColor.r - aPosition.y, aColor.gba);
         }
     </script>
     <script id="fshader" type="x-shader/x-fragment">
@@ -21,7 +21,7 @@
         varying vec4 vColor;
        
         void main() {
-            gl_FragColor = vColor;
+            gl_FragColor = vColor.bgra;
         }        
     </script>
     <link rel="stylesheet" type="text/css" href="styles.css" />

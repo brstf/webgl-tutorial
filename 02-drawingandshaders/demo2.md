@@ -3,8 +3,8 @@
 
 In the first lesson, we looked at the basics of setting up a WebGL context and drawing, but we didn't really touch on the full power of WebGL.  Obviously, drawing a basic triangle to the screen is not impressive in comparison to the special effects of movies and highly detailed video games, so how do they accomplish so much more?  We'll begin to dig into more detail about more powerful methods and drawing capabilities of WebGL in this lesson.
 
-Triangles And You
------------------
+Triangles And Colors
+--------------------
 
 When the triangle was drawn in the previous demo, we set up the buffers, set up the vertices as an attribute, then made a call to `drawElements` to actually render the triangle.  Already, a lot is happening here with the numerous function calls and various arguments supplied to these functions, so what really is going on here and how can we use it?
 
@@ -173,3 +173,132 @@ But that leaves the `stride`, number of bytes between vertices, and the `offset`
     gl.vertexAttribPointer(gl_program_loc.aColor, 4, gl.FLOAT, false, 16, 36);
 
 Easy, right?  This sort of calculation is pretty simple to do, as long as you're careful and double check your logic.  
+
+So now, our triangle has a unique color per vertex, so let's see what that looks like!
+
+    [index2-02 canvas]
+
+Well, that's certainly interesting.  Each vertex has the color that we specified, but what's going on in the middle of the triangle?  We didn't specify any additional colors or add any code to gain this behavior to do this, so what's going on here?
+
+Shaders
+-------
+There is a little more going on here than it seems, and all of it comes from the shaders.  The name "shader" comes from it's orignal purpose, to modify light and darkness in the image during the render.  Now they are sort of all purpose mini programs that run on the graphics card that can modify vertex position, color, and various other things.  That doesn't seem like a whole lot, but it actually offers a ton of flexibility and many realistic and interesting effects can be done using them, as we'll see.  
+
+Shaders are written in a special shading language called GLSL, or the OpenGL Shading Language.  We're writing code using WebGL, but WebGL's spec is derived from OpenGL ES, so they share the same shading language, which is great for us because its a well defined and documented language with many examples readily available.  Thus far, we've thrown around terms such as "Vertex Shader" and "Fragment Shader" as if it was just something required by WebGL, but now we'll discuss their purpose and how they function.  
+
+A *Vertex Shader* is a shader that operates on each *vertex*, with its main use to modify the vertex's position.  We saw that in our earlier shaders by setting the special variable `gl_Position` equal to the vertex position.  However, often it's not that simple.  Typically, a scene will have a moving camera in it, and every time the camera is moved, we don't want to update all of the vertex positions manually, instead this is done in the vertex shader.  And while this may seem like the same idea, the vertex shader runs on as many vertices as possible simultaneously, which means this calculation can be done *much* faster than if we did it in the CPU code.  
+
+The main use of the vertex shader is setting the vertex's position based on the objects location and current projection, but it is also responsible for telling the fragment shader other properties of the vertex.  We saw this in the previous example, where the vertex shader uses the color attribute, and passes the color on to the fragment shader in a `varying` variable.  The shaders can have a large number of variables if there are a lot of properties that change per vertex and influence the color.
+
+The other main shader type is the "Fragment Shader".  The main purpose of the fragment shader is to determine the final color of a pixel on the screen.  The fragment shader runs once for every pixel that needs coloring.  For our triangle, this means that the fragment shader runs once for the pixels in the middle of the canvas that make up the triangle.  It's job is to output a final color in the `gl_FragColor` variable, making use of any `varying`s that may have been passed in.  However, since the fragment shader is running once *per pixel* while the vertex shader is passing in values once *per vertex*, how does it determine which value of a varying to use at a particular pixel?  
+
+The answer is simple: each `varying` is calculated by mixing the values of all vertices that affect the fragment by "linear interpolation".  The value of a `varying` at a particular is not obtained by taking the value of the closest, but rather by interpolating between all of the `varying` values at all of the points of the affecting shape (line or triangle).  The exact mathematics of this interpolation is not important for this discussion, but if you're interested you can read about it [here](http://en.wikibooks.org/wiki/GLSL_Programming/Rasterization).  This interpolation means that there is a smooth transition in color in the interior of the triangle between the colors of each vertex!  
+
+Now that we know how these shaders operate, let's change them a bit.  Let's try making the following change to the shaders:
+
+    // Vertex Shader
+    attribute vec3 aPosition;
+    attribute vec4 aColor;
+    
+    varying vec4 vColor;
+    
+    void main() {
+        gl_Position = vec4(aPosition.x - 0.5, aPosition.yz, 1.0);
+        vColor = vec4( aColor.r - aPosition.y, aColor.gba);
+    }
+    
+    // Fragment Shader
+    precision mediump float;
+    
+    varying vec4 vColor;
+   
+    void main() {
+        gl_FragColor = vColor.bgra;
+    }  
+
+So what does this change do?  Well, in the vertex shader, we modify the color we send to the fragment shader by subtracting the `y` value of the position from the `r` value of the color.  Note that both `aPosition` and `aColor` are just `vec`'s, the notation `vec.x` and `vec.r` both refer to the first element in the vector, even though that value can be a position/color/anything else we would store in a vector.  So, this subtraction should make the red channel of the color much less vibrant for vertices with a positive `y` value, and more vibrant for vertices with a negative `y` component.  We've also modified the x position to shift left by 0.5.  Then, in the fragment shader, we swap the red and the blue channel of the color vector by accessing `vColor.bgra` instead of `vColor.rgba`.  Now, the blue values should be vibrant in negative `y` space, and non-existant in the positive `y` space, and red should only appear in the bottom right corner of the triangle where the blue was before!  Sure enough, we get the display that we expected:
+
+    [ index2-03 canvas ]
+
+This is just a simple modification in shaders.  Especially once we get to texturing and lighting we'll see more of how useful shaders can be, but just remember: Vertex shaders run once per vertex and pass `varying` values to the fragment shader.  These `varying` values are interpolated to fill in the inside of a shape smoothly in the fragment shader.  For global values `uniforms` can be used, and `attributes` are properties of a single vertex.  As a final note, if a constant value is desired apart from the JavaScript or any calculation, it is possible to declare a `const` value much like a `varying` or `uniform`.  These `const` values must be assigned a value when they are declared, and cannot be changed.  This is useful for a constant property of certain lighting system or any other such property that should remain across *all* objects drawn.
+
+Interleaving and More Shapes
+----------------------------
+
+Now that we've seen how to pass multiple attributes to a shader, and how shaders work internally you may wonder if our method of sending color information to the graphics card is particularly efficient.  The answer (which you've probably guessed since it's being mentioned at all) is no.  In our example, we're drawing a single triangle so the performance is fine, but what would happen if we were attempting to draw some object that had more than 3 vertices, say, 10,000?  The vertex shader needs to retrieve both the position and the color information.  So say the first vertex is being loaded in; the positional information is at the front of the buffer, but the color information is 10,000 vertices times 3 components times 4 bytes = 120,000 bytes further in the buffer.  For each vertex this gap between it's position and color information only grows.  Jumping around in the buffer like this is not particularly efficient, and with such a large gap different parts of the buffer will have to be swapped in and out of the video card memory, so the draw call will take longer than it needs to.  
+
+Obviously, storing the data separate like this is bad in terms of performance, but it is also suboptimal in terms of logic and reasoning.  Wouldn't it be easier to specify the position of a vertex, the color of that vertex, then the position of the next vertex, etc.?  In this way, we can even have some sort of structure that stores positional, color, and any other information about a vertex sequentially in memory, instead of having to store all positional data, then all color data, and hope that we've stored it in the right order.  
+
+The good news is that doing this is quite easy with some careful modification of `vertexAttribPointer`.  First, we'll revert our shaders back to not changing position or color channels so that our triangle will look the same as it did when we first colored it.  Now, let's modify the vertex array:
+
+    // Put 3 vertices of a triangle in the VBO
+    //                              [    x,    y,   z,   r,   g,   b,   a ]
+    var vertices = new Float32Array([ -0.5, -0.5, 0.0, 1.0, 0.0, 0.0, 1.0, // Vertex 1
+                                       0.5, -0.5, 0.0, 0.1, 0.3, 0.7, 1.0, // Vertex 2
+                                       0.0,  0.5, 0.0, 1.0, 1.0, 0.0, 1.0  // Vertex 3
+
+With the color information appearing between positional information of vertices, we call this array "interleaved".
+
+Now we need to modify how the attribute pointers are setup.  Let's take a look at the new structure of data:
+
+    [ coloroffset2.png ]
+
+Each vertex now starts with 12 bytes of `[x,y,z]` positional information, followed by 16 bytes of `[r,g,b,a]` color data, then another 12 bytes of position, etc., with 28 bytes total for a vertex.  For the vertex attribute pointer, this means that there is a 28 byte `stride` between vertices, and only a 12 byte `offset` until the first color information.  In code:
+
+    gl.vertexAttribPointer(gl_program_loc.aPosition, 3, gl.FLOAT, false, 28,  0);
+    gl.vertexAttribPointer(gl_program_loc.aColor,    4, gl.FLOAT, false, 28, 12);
+
+Let's take a look at a diagram that illustrates what's going on:
+
+    [ coloroffset3.png ]
+
+Now we can see that it's pretty easy to organize vertex information like this and ship it to the graphics card, we just have to be pretty careful with the byte size of our vertices, and making sure if we add something to update the `stride` and `offset`s appropriately.
+
+Individual triangles are good and all, but obviously, there are many more shapes in the world that we'd want to draw.  Let's modify our program to draw a simple square instead of a triangle (we're moving up in the world).  So how do we do that?  It's important to know that WebGL, OpenGL, OpenGL ES, and most other graphics systems don't work with anything more complicated than triangles because we can construct a realistic representation of anything by combining enough triangles.  So we'll make a square simply by combining two triangles.
+
+First, we'll add a vertex to our vertex list, and modify positions to make a square instead of a triangle:
+
+    //                              [    x,    y,   z,   r,   g,   b,   a ]
+    var vertices = new Float32Array([ -0.5, -0.5, 0.0, 1.0, 0.0, 0.0, 1.0, // Vertex 1
+                                       0.5, -0.5, 0.0, 0.1, 0.3, 0.7, 1.0, // Vertex 2
+                                      -0.5,  0.5, 0.0, 1.0, 1.0, 0.0, 1.0, // Vertex 3
+                                       0.5,  0.5, 0.0, 0.0, 1.0, 0.0, 1.0  // Vertex 4
+                                   ]);
+
+Next up, we'll add 3 indices to the index list to draw a second triangle:
+
+    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array([0,1,2,1,3,2]), gl.STATIC_DRAW);
+
+Finally, simply update the number of vertices drawn in the `drawElements` call:
+
+    gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0);
+
+And we'll see a nice square drawn!
+
+    [ index2-05 canvas ]
+
+Hardly looks like two triangles after all is said and done.  
+
+We mentioned in the first lesson that the first argument to `drawElements` can be a number of different primitives.  The possible primitives are: 
+
+ -  `POINTS` - Each point requires only one vertex, so one object is drawn for every vertex in the list.
+ -  `LINE_STRIP` - Draws multiple lines where the endpoint of each line is the starting point of the next line.  For example, if given the list of vertices `v1, v2, v3, v4`, the lines `[v1,v2], [v2,v3], [v3,v4]` would be drawn.  There are 2 vertices per object, so with `N` vertices, `N-1` objects are drawn.  
+ -  `LINE_LOOP` - Equivalent to `LINE_STRIP` but an extra line is drawn from the last point in the list to the first.  In the previous example, the lines drawn would be `[v1,v2], [v2,v3], [v3,v4], [v4,v1]`.  For `N` vertices, `N` objects are drawn.
+ -  `LINES` - Draws individual lines, does not connect end points to start points.  In the previous example, the lines `[v1,v2], [v3,v4]` would be drawn.  For `N` vertices, `N/2` objects are drawn.
+ -  `TRIANGLE_STRIP` - The first of the triangle primitives, much like `LINE_STRIP`, uses the last 2 vertices of one triangle for the first two vertices of the next triangle.  In the previous example, the triangles `[v1,v2,v3], [v2,v3,v4]` would be drawn.  With `N+2` vertices, `N` triangles are drawn.
+ -  `TRIANGLE_FAN` - Similar to `TRIANGLE_STRIP`, but each triangle drawn uses the origin point and the last point of the previous triangle drawn instead of just the last two triangle points.  For the previous example, the triangles `[v1,v2,v3], [v1,v3,v4]` would be drawn.  As the name suggests, objects drawn by a `TRIANGLE_FAN` resemble a fan, with all triangles sharing the same origin point.  With `N+2` vertices, `N` triangles are drawn.
+ -  `TRIANGLES` - The most basic of the triangle types, `TRIANGLES` similar to `LINES` draws individual triangles without sharing vertices.  In the previous example, there would only be enough vertices for one triangle: `[v1,v2,v3]`.  With `N` vertices, `N/3` triangles are drawn.
+
+So WebGL offers a lot of different primitives to allow us to save repeating vertices when we have lots of shared vertices between triangles.  So let's do a simple modification of the previous program to use a `TRIANGLE_STRIP` to save on memory (6 vertices is *far* too much memory to handle, 4 is much better).  First, let's change the index list:
+
+    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array([0,1,2,3]), gl.STATIC_DRAW);
+
+Now we only have 4 elements in the element array.  We can now change the `drawElements` call:
+
+    gl.drawElements(gl.TRIANGLE_STRIP, 4, gl.UNSIGNED_SHORT, 0);
+
+As expected, we get the same beautiful colored square:
+
+    [ index2-06 canvas ]
+
+Now we have seen how to handle color information (and incidentally how to handle any per vertex attribute), explored shaders in more depth, how to use different primitives, and how to combine triangles to make shapes.  In the next lesson, we'll revisit shaders as we make the leap to 3 dimensions, using projection and model matrices, and how to make our objects look a little more realistic.
