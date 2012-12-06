@@ -39,3 +39,9 @@ http://opengameart.org/content/metalstone-textures
 Licensed by the Creative Commons license 3.0:
 
 http://creativecommons.org/licenses/by/3.0/
+
+`glMatrix`
+----------
+Making use of Brandon Jones's wonderful matrix library for fast matrix processing:
+
+https://github.com/toji/gl-matrix
