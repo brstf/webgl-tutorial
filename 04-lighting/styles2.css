@@ -1,0 +1,17 @@
+body, html {
+    margin: 0px;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+
+#text {
+    position:absolute;
+    left: 10px;
+    top: 300px;
+}
+#c {
+    margin: 12px;
+    width: 750px;
+    height: 750px;
+}

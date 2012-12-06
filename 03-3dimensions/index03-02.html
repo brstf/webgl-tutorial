@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Demo 3</title>
+    <script src="scripts/webgl_utils.js" type="text/javascript"></script>
+    <script src="scripts/glMatrix.js" type="text/javascript"></script>
+    <script src="scripts/demo03-02.js" type="text/javascript"></script>
+    <script id="vshader" type="x-shader/x-vertex">
+        attribute vec3 aPosition;
+        attribute vec3 aColor;
+        
+        uniform mat4 uMVmat;
+        
+        varying vec3 vColor;
+        
+        void main() {
+            gl_Position = uMVmat * vec4(aPosition, 1.0);
+            vColor = aColor;
+        }
+    </script>
+    <script id="fshader" type="x-shader/x-fragment">
+        precision mediump float;
+
+        varying vec3 vColor;
+        
+        void main() {
+            gl_FragColor = vec4( vColor, 1.0 );
+        }          
+    </script>
+    <link rel="stylesheet" type="text/css" href="styles.css" />
+</head>
+<body onload="main()">
+<canvas id='c'> 
+    If you're seeing this, your browser does not support the canvas tag
+</canvas>
+</body>
+</html>

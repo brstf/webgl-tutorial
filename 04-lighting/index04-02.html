@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Demo 4</title>
+    <script src="scripts/webgl_utils.js" type="text/javascript"></script>
+    <script src="scripts/glMatrix.js" type="text/javascript"></script>
+    <script src="scripts/demo04-02.js" type="text/javascript"></script>
+    <script id="vshader" type="x-shader/x-vertex">
+        attribute vec3 aPosition;
+        attribute vec2 aTexCoord;
+        
+        uniform mat4 uMVmat;
+        uniform mat3 uNmat;
+        
+        varying vec2 vTexCoord;
+        varying vec3 vNormalEye;
+        varying vec3 vPositionEye3;
+        
+        void main() {
+            // Calculate vertex position in eye coordinates
+            vec4 vertexPositionEye4 = uMVmat * vec4(aPosition, 1.0);
+            vPositionEye3 = vertexPositionEye4.xyz / vertexPositionEye4.w;
+            
+            // Transform the normal into eye coordinates
+            vNormalEye = normalize( uNmat * aPosition );
+            
+            gl_Position = vertexPositionEye4;
+            vTexCoord = aTexCoord;
+        }
+    </script>
+    <script id="fshader" type="x-shader/x-fragment">
+        precision mediump float;
+
+        uniform sampler2D uSampler;
+        uniform sampler2D uNormalMap;
+        uniform int uDrawState;
+        
+        varying vec2 vTexCoord;
+        varying vec3 vNormalEye;
+        varying vec3 vPositionEye3;
+        
+        const vec3 lightPosition = vec3(0.0, 0.0, 5.0);
+        const vec3 ambientLightColor = vec3( 0.2, 0.2, 0.2 );
+        const vec3 diffuseLightColor = vec3( 0.7, 0.7, 0.7 );
+        const vec3 specularLightColor = vec3( 1.0, 1.0, 1.0 );
+        const float shininess = 2.0;
+        
+        void main() {
+            // Calculate vector to light source (l)
+            vec3 tmpvec = normalize( lightPosition - vPositionEye3 );
+            
+            // Calculate a tangent and a bitangent vector to the normal
+            // First find a tangent:
+            vec3 vTangent = vec3( vNormalEye.zz, -vNormalEye.x-vNormalEye.y );
+            if( length( vTangent ) == 0.0 ) {
+                vTangent = vec3( -vNormalEye.y - vNormalEye.z, vNormalEye.xx );
+            }
+            vTangent = normalize( vTangent );
+            // Find another tangent by crossing tangent with the normal
+            vec3 vBitangent = normalize( cross( vNormalEye, vTangent  ) );
+            
+            // Convert the vector to light source into "tangent" space
+            vec3 vectorToLightSource = vec3( dot( tmpvec, vTangent ),
+                                             dot( tmpvec, vBitangent),
+                                             dot( tmpvec, vNormalEye ) );
+            
+            // Retrieve the normal from the normal map
+            vec3 normal = normalize( texture2D( uNormalMap, vTexCoord ).rgb * 2.0 - 1.0);
+            
+            // Calculate normal dot l for diffuse lighting
+            float diffuseLightWeighting = clamp( dot( normal, vectorToLightSource ), 0.0, 1.0 );
+            
+            // Calculate the reflection vector
+            vec3 reflectionVector = normalize( reflect( -vectorToLightSource, normal ) );
+            
+            // Convert the vertex position in eye coordinates into "tangent" space
+            vec3 eyeVec = vec3 ( dot( vPositionEye3, vTangent ),
+                                 dot( vPositionEye3, vBitangent ),
+                                 dot( vPositionEye3, vNormalEye ) );
+            vec3 viewVectorEye = normalize( eyeVec );
+            float rdotv = clamp( dot( reflectionVector, viewVectorEye ), 0.0, 1.0 );
+            float specularLightWeighting = pow( rdotv, shininess );
+            
+            vec3 lightWeighting = ambientLightColor + 
+                                 diffuseLightColor  * diffuseLightWeighting +
+                                 specularLightColor * specularLightWeighting;
+            
+            if( uDrawState == 0 ) {
+                gl_FragColor = texture2D(uSampler, vTexCoord) * vec4( lightWeighting.rgb, 1.0 );
+            } else if( uDrawState == 1 ) {
+                gl_FragColor = vec4( texture2D(uSampler, vTexCoord).rgb, 1.0 );
+            } else if( uDrawState == 2 ) {
+                gl_FragColor = vec4( texture2D(uNormalMap, vTexCoord).rgb, 1.0 );
+            } else {
+                gl_FragColor = vec4( 1.0, 1.0, 1.0, 1.0 ) * vec4( lightWeighting.rgb, 1.0 );
+            }
+        }          
+    </script>
+    <link rel="stylesheet" type="text/css" href="styles2.css" />
+</head>
+<body onload="main()">
+<canvas id='c'> 
+    If you're seeing this, your browser does not support the canvas tag
+</canvas>
+<p>
+Press the space bar to toggle between drawing modes:<br>
+ 1 - Draw cube with texture and normal mapped lighting<br>
+ 2 - Draw the cube just with the base color map texture (no lighting)<br>
+ 3 - Draw the cube with the normal map<br>
+ 4 - Draw the lighting on a blank white cube<br>
+</p>
+</body>
+</html>
