@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Demo 06 - Basic model loader</title>
+    <script src="scripts/webgl_utils.js" type="text/javascript"></script>
+    <script src="scripts/glMatrix.js" type="text/javascript"></script>
+    <script src="scripts/06-02-modelloader.js" type="text/javascript"></script>
+    <script src="scripts/CameraController.js" type="text/javascript"></script>
+    <script src="scripts/webgl-debug.js" type="text/javascript"></script>
+    <script id="vshader" type="x-shader/x-vertex">
+        uniform mat4 uMVMatrix;
+        uniform mat4 uPMatrix;
+        uniform mat3 uNMatrix;
+        uniform vec3 uColor;        
+
+        attribute vec3 aPosition;
+                                  
+        varying vec3 vColor;
+        varying vec3 vNormalEye;
+        varying vec3 vPositionEye3;
+
+        void main() {
+            // Calculate vertex position in eye coordinates 
+            vec4 vertexPositionEye4 = uMVMatrix * vec4(aPosition, 1.0);
+            vPositionEye3 = vertexPositionEye4.xyz / vertexPositionEye4.w;
+            
+            // Transform the normal tio eye coordinates
+            vNormalEye = normalize(uNMatrix * aPosition);
+            
+            //Transform geometry
+            gl_Position = uPMatrix * uMVMatrix * vec4(aPosition, 1.0);
+    
+            vColor = uColor;
+        }
+    </script>
+    <script id="fshader" type="x-shader/x-fragment">
+        precision mediump float;
+
+        uniform bool uLighting;
+        
+        varying vec3 vColor;
+        varying vec3 vNormalEye;
+        varying vec3 vPositionEye3;
+        
+        const vec3 lightPosition = vec3(0.0, 0.0, 5.0);
+        const vec3 ambientLightColor = vec3( 0.2, 0.2, 0.2 );
+        const vec3 diffuseLightColor = vec3( 0.7, 0.7, 0.7 );
+        const vec3 specularLightColor = vec3( 1.0, 1.0, 1.0 );
+        const float shininess = 8.0;
+        
+        void main() {
+            vec3 lightWeighting = vec3(1.0, 1.0, 1.0);
+            
+            if( uLighting ) {
+                // Calculate vector to light source (l)
+                vec3 vectorToLightSource = normalize( lightPosition - vPositionEye3 );
+                
+                // Calculate n dot l for diffuse lighting
+                float diffuseLightWeighting = max(dot(vNormalEye, vectorToLightSource), 0.0 );
+                
+                // Calculate the reflection vector (r)
+                vec3 reflectionVector = normalize(reflect(-vectorToLightSource, vNormalEye));
+                
+                vec3 viewVectorEye = -normalize(vPositionEye3);
+                float rdotv = max(dot(reflectionVector, viewVectorEye), 0.0);
+                float specularLightWeighting = pow(rdotv, shininess);
+                
+                lightWeighting = ambientLightColor + 
+                                 diffuseLightColor  * diffuseLightWeighting + 
+                                 specularLightColor * specularLightWeighting;
+            }
+            
+            gl_FragColor = vec4( vColor.rgb * lightWeighting.rgb, 1.0 );
+        }        
+    </script>
+    <link rel="stylesheet" type="text/css" href="styles-modelloader.css" />
+</head>
+<body onload="main()">
+<canvas id='c'> 
+    If you're seeing this, your browser does not support the canvas tag
+</canvas>
+<ul id="optionsMenu">
+    <li>
+        <a id="wireframe" class="solid" href="#">
+            <span id='wireframe-text'>Solid Mode</span>
+        </a>
+    </li>
+    
+    <li>
+        <a id="lighting" class="light" href="#">
+            <span id='lighting-text'>Lighting Enabled</span>
+        </a>
+    </li>
+</ul>
+</body>
+</html>
