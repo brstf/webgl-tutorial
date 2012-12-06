@@ -184,6 +184,8 @@ function draw() {
 function main() {
     // Get the WebGL canvas, and initialize WebGL
     var c = document.getElementById('c');
+    c.width = c.clientWidth;
+    c.height = c.clientHeight;
     gl = WebGLUtils.setupWebGL( c );
     
     // Escape on any error
