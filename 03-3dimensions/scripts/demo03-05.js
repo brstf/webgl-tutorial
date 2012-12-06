@@ -35,7 +35,11 @@ function textureFinishedLoading( image, texture ) {
     gl.texParameteri( gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR );
     gl.texParameteri( gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR );
     
-    // Set the wrap in both directions to repeat
+    // Set the wrap in both directions to repeat, this means that texture 
+    // coordinates outside of the range 0.0 to 1.0 will wrap around, i.e.
+    // -0.1 will map to the same texel as 0.9.  Using this wrap mode,
+    // we can change the texture coordinates to make the stone slabs line 
+    // up around the cube
     gl.texParameteri( gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT );
     gl.texParameteri( gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT );
     
@@ -85,6 +89,8 @@ function init() {
     gl.depthRange( 10.0, 10.0 );
     
     // Put 24 vertices of a cube in the VBO
+    // On the right and left face (when looking straight on at the cube), shift
+    // the texture coordinates down by 0.25 to line them up
     var vertices = new Float32Array([ -0.5, -0.5,  0.5, 0.0, 0.0, 
                                        0.5, -0.5,  0.5, 1.0, 0.0, 
                                       -0.5,  0.5,  0.5, 0.0, 1.0,

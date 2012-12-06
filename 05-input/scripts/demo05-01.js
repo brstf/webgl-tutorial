@@ -1,3 +1,15 @@
+/**
+ * Stone texture, normal map, and specular map obtained from Spiney's 
+ * texture pack from opengameart.org:
+ *
+ *  http://opengameart.org/content/metalstone-textures
+ *
+ *  Licensed by the Creative Commons license 3.0:
+ *
+ *  http://creativecommons.org/licenses/by/3.0/
+ *
+ */
+ 
 var gl;
 var gl_program;
 var gl_program_loc = {};

@@ -81,6 +81,10 @@ function init() {
     gl.depthRange( 10.0, 10.0 );
     
     // Put 24 vertices of a cube in the VBO
+    // Included are texture coordinates.  These are not absolute 
+    // coordinates that line up with the image, rather percentages,
+    // i.e. (0.0,0.0) is the bottom left corner of the image, 
+    //      (1.0,1.0) is the top right corner of the image
     var vertices = new Float32Array([ -0.5, -0.5,  0.5, 0.0, 0.0, 
                                        0.5, -0.5,  0.5, 1.0, 0.0, 
                                       -0.5,  0.5,  0.5, 0.0, 1.0,
@@ -121,7 +125,6 @@ function init() {
                                                             12,13,14,15,15,15,16,
                                                             16,17,18,19,19,19,20,
                                                             20,21,22,23]), gl.STATIC_DRAW);
-    
     
     // Initialize the shaders
     initShaders();
