@@ -381,6 +381,8 @@ And that's it!  The shaders do the rest of the work!  As we can see here:
         gl_FragColor = vec4( 1.0, 0.0, 0.0, 1.0 );
     }
 
-The vertex shader simply sets the `gl_Position` variable to the position attribute passed in from our program.  This `gl_Position` specifies the final position of the vertex in WebGL coordinates, where x and y are between `-1.0` and `1.0`.  Our vertices are already in that range so no modification must be done.  Next, the fragment shader assigns the color of each fragment (`gl_FragColor`) to opaque red `[1.0, 0.0, 0.0, 1.0]`.  And that's it, we get a red triangle!.  
+The vertex shader simply sets the `gl_Position` variable to the position attribute passed in from our program.  This `gl_Position` specifies the final position of the vertex in WebGL coordinates, where x and y are between `-1.0` and `1.0`.  Our vertices are already in that range so no modification must be done.  Next, the fragment shader assigns the color of each fragment (`gl_FragColor`) to opaque red `[1.0, 0.0, 0.0, 1.0]`.  And that's it, we get a red triangle!.
+
+[Demo 1 - Red Triangle](http://homepages.rpi.edu/~staufb/webgl-tutorial/01-gettingstarted/)
 
 We have accomplished a lot in this first lesson.  We learned how to initialize a WebGL context on a `canvas`, learned how to set the clear color for the context and clear the `canvas`, learned how to create vertex/index buffers and store data in them, learned how to draw the vertices that we've stored, and touched on how to create, compile, and link shaders to a shader program.  This should seem like a lot of information, and that's fine!  Soon, we'll cover each of these topics in greater depth, then we'll revisit this basic triangle example and it will make much more sense.

@@ -76,6 +76,8 @@ With the location of the uniform,  data can be stored in the uniform.  This is d
 
 And that's it, the triange should now be drawn as green, and to change the color, we can simply modify the JavaScript code!  Remember, this line has to be placed after the call to `useProgram` because the uniform that is receiving information is stored in the program `gl_program`, so it must be the active program before we can access it's locations.
 
+[Demo 2-1 Green Triangle](http://homepages.rpi.edu/~staufb/webgl-tutorial/02-drawingandshaders/index2-01.html)
+
 What we have done here may seem a little silly, why did we upload a uniform to the vertex shader, then pass it to the fragment shader without modification?  Couldn't we have just gave the fragment shader the information directly by placing the uniform there:
 
     //Vertex Shader
@@ -176,7 +178,7 @@ Easy, right?  This sort of calculation is pretty simple to do, as long as you're
 
 So now, our triangle has a unique color per vertex, so let's see what that looks like!
 
-    [index2-02 canvas]
+[Demo 2-2 Color Attributes](http://homepages.rpi.edu/~staufb/webgl-tutorial/02-drawingandshaders/index2-02.html)
 
 Well, that's certainly interesting.  Each vertex has the color that we specified, but what's going on in the middle of the triangle?  We didn't specify any additional colors or add any code to gain this behavior to do this, so what's going on here?
 
@@ -218,7 +220,7 @@ Now that we know how these shaders operate, let's change them a bit.  Let's try 
 
 So what does this change do?  Well, in the vertex shader, we modify the color we send to the fragment shader by subtracting the `y` value of the position from the `r` value of the color.  Note that both `aPosition` and `aColor` are just `vec`'s, the notation `vec.x` and `vec.r` both refer to the first element in the vector, even though that value can be a position/color/anything else we would store in a vector.  So, this subtraction should make the red channel of the color much less vibrant for vertices with a positive `y` value, and more vibrant for vertices with a negative `y` component.  We've also modified the x position to shift left by 0.5.  Then, in the fragment shader, we swap the red and the blue channel of the color vector by accessing `vColor.bgra` instead of `vColor.rgba`.  Now, the blue values should be vibrant in negative `y` space, and non-existant in the positive `y` space, and red should only appear in the bottom right corner of the triangle where the blue was before!  Sure enough, we get the display that we expected:
 
-    [ index2-03 canvas ]
+[Demo 2-3 Playing with Shaders](http://homepages.rpi.edu/~staufb/webgl-tutorial/02-drawingandshaders/index2-03.html)
 
 This is just a simple modification in shaders.  Especially once we get to texturing and lighting we'll see more of how useful shaders can be, but just remember: Vertex shaders run once per vertex and pass `varying` values to the fragment shader.  These `varying` values are interpolated to fill in the inside of a shape smoothly in the fragment shader.  For global values `uniforms` can be used, and `attributes` are properties of a single vertex.  As a final note, if a constant value is desired apart from the JavaScript or any calculation, it is possible to declare a `const` value much like a `varying` or `uniform`.  These `const` values must be assigned a value when they are declared, and cannot be changed.  This is useful for a constant property of certain lighting system or any other such property that should remain across *all* objects drawn.
 
@@ -254,6 +256,8 @@ Let's take a look at a diagram that illustrates what's going on:
 
 Now we can see that it's pretty easy to organize vertex information like this and ship it to the graphics card, we just have to be pretty careful with the byte size of our vertices, and making sure if we add something to update the `stride` and `offset`s appropriately.
 
+[Demo 2-4 Interleaved Color Data](http://homepages.rpi.edu/~staufb/webgl-tutorial/02-drawingandshaders/index2-04.html)
+
 Individual triangles are good and all, but obviously, there are many more shapes in the world that we'd want to draw.  Let's modify our program to draw a simple square instead of a triangle (we're moving up in the world).  So how do we do that?  It's important to know that WebGL, OpenGL, OpenGL ES, and most other graphics systems don't work with anything more complicated than triangles because we can construct a realistic representation of anything by combining enough triangles.  So we'll make a square simply by combining two triangles.
 
 First, we'll add a vertex to our vertex list, and modify positions to make a square instead of a triangle:
@@ -275,7 +279,7 @@ Finally, simply update the number of vertices drawn in the `drawElements` call:
 
 And we'll see a nice square drawn!
 
-    [ index2-05 canvas ]
+[ Demo 2-5 A Square Appears ](http://homepages.rpi.edu/~staufb/webgl-tutorial/02-drawingandshaders/index2-05.html)
 
 Hardly looks like two triangles after all is said and done.  
 
@@ -299,6 +303,6 @@ Now we only have 4 elements in the element array.  We can now change the `drawEl
 
 As expected, we get the same beautiful colored square:
 
-    [ index2-06 canvas ]
+[ Demo 2-6 Square with `TRIANGLE_STRIP` ](http://homepages.rpi.edu/~staufb/webgl-tutorial/02-drawingandshaders/index2-06.html)
 
 Now we have seen how to handle color information (and incidentally how to handle any per vertex attribute), explored shaders in more depth, how to use different primitives, and how to combine triangles to make shapes.  In the next lesson, we'll revisit shaders as we make the leap to 3 dimensions, using projection and model matrices, and how to make our objects look a little more realistic.
