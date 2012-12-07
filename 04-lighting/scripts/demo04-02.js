@@ -23,7 +23,7 @@ var drawState = 0;
 
 function update( time ) {
     // Setup another request
-    requestId = requestAnimFrame( update, document.getElementById('c') );
+    requestId = requestAnimFrame( update );
     draw();
 }
 
@@ -301,5 +301,5 @@ function main() {
     init();
 
     // Draw the scene
-    requestId = requestAnimFrame( update, document.getElementById('c') );
+    requestId = requestAnimFrame( update );
 } 

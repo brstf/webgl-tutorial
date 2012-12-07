@@ -79,7 +79,7 @@ function distance( pos1, pos2 ) {
 
 function update( time ) {
     // Setup another request
-    requestId = requestAnimFrame( update, document.getElementById('c') );
+    requestId = requestAnimFrame( update );
     
     // Loop through each boid in each bin to update:
     for( var i = 0; i < bins.length; ++i ) {
@@ -313,7 +313,7 @@ function init() {
     
     // Reshape the canvas, and setup the viewport and projection
     reshape();
-    requestId = requestAnimFrame( update, document.getElementById('c') );
+    requestId = requestAnimFrame( update );
 }
 
 /**
