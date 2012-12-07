@@ -13,3 +13,13 @@ Uses two key callback functions, `onkeyup` and `onkeydown` to test when arrow ke
 Uses my custom `CameraController.js`, script to use the mouse control the rotation of the cube.  The `CameraController` uses quaternions to store the rotation, and rotates by calculate coordinates on the imaginary sphere that encapsulates the object, and during the drag continually calculating these points of intersection and interpolating between them to obtain a final quaternion rotation.
 
 [5-2 Mouse Input](http://homepages.rpi.edu/~staufb/webgl-tutorial/05-input/index05-02.html)
+
+Textures
+--------
+Stone texture, normal map, and specular map obtained from Spiney's texture pack from opengameart.org:
+
+http://opengameart.org/content/metalstone-textures
+
+Licensed by the Creative Commons license 3.0:
+
+http://creativecommons.org/licenses/by/3.0/

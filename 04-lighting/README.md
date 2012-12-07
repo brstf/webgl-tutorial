@@ -22,3 +22,13 @@ Similarly, this demo uses an additional specular map to modify the specular high
 [Demo 4-3 Specular Map](http://homepages.rpi.edu/~staufb/webgl-tutorial/04-lighting/index04-03.html)
 
 Each of the Normal Mapping and Specular Map demos are interactive.  Press 'space' to cycle from the Final image -> color map -> normal map -> (specular map) -> final lighting attenuation values on a white cube -> final image again.  Additionally, for the specular map, holding down the 's' key will disable the specular highlight, release it will enable specular highlights again.
+
+Textures
+--------
+Stone texture, normal map, and specular map obtained from Spiney's texture pack from opengameart.org:
+
+http://opengameart.org/content/metalstone-textures
+
+Licensed by the Creative Commons license 3.0:
+
+http://creativecommons.org/licenses/by/3.0/

@@ -44,3 +44,13 @@ Drawing a textured cube with texture coordinates as attributes instead of color 
 Change the wrapping mode to mirror so that we can line up the stone textures to create evenly sized slabs by shifting texture coordinates.
 
 [Demo 3-5 Texture Wrapping](http://homepages.rpi.edu/~staufb/webgl-tutorial/03-3dimensions/index03-05.html)
+
+Textures
+--------
+Stone texture, normal map, and specular map obtained from Spiney's texture pack from opengameart.org:
+
+http://opengameart.org/content/metalstone-textures
+
+Licensed by the Creative Commons license 3.0:
+
+http://creativecommons.org/licenses/by/3.0/
