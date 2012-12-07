@@ -164,7 +164,7 @@ We can setup the color attribute pointer by:
 
 But where did these new numbers come from?  Is there some magical method?  Well, not really, it just takes some reasoning about how the data is stored in the buffer.  Take a look at the following diagram:
 
-![Color offsets](coloroffset.png)
+![Color offsets](http://homepages.rpi.edu/~staufb/webgl-tutorial/coloroffset.png)
 
 This splits the positional and color information up so that it's easier to see what the offsets should be.  First off, we know that there are `4` non-normalized color float values per vertex, so that the call quite evidently starts with:
 
@@ -243,7 +243,7 @@ With the color information appearing between positional information of vertices,
 
 Now we need to modify how the attribute pointers are setup.  Let's take a look at the new structure of data:
 
-![Interleaved structure](coloroffset2.png)
+![Interleaved structure](http://homepages.rpi.edu/~staufb/webgl-tutorial/coloroffset2.png)
 
 Each vertex now starts with 12 bytes of `[x,y,z]` positional information, followed by 16 bytes of `[r,g,b,a]` color data, then another 12 bytes of position, etc., with 28 bytes total for a vertex.  For the vertex attribute pointer, this means that there is a 28 byte `stride` between vertices, and only a 12 byte `offset` until the first color information.  In code:
 
@@ -252,7 +252,7 @@ Each vertex now starts with 12 bytes of `[x,y,z]` positional information, follow
 
 Let's take a look at a diagram that illustrates what's going on:
 
-![Interleaved color offsets](coloroffset3.png)
+![Interleaved color offsets](http://homepages.rpi.edu/~staufb/webgl-tutorial/coloroffset3.png)
 
 Now we can see that it's pretty easy to organize vertex information like this and ship it to the graphics card, we just have to be pretty careful with the byte size of our vertices, and making sure if we add something to update the `stride` and `offset`s appropriately.
 
